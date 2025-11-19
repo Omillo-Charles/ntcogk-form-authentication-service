@@ -2,8 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
+import mongoose from 'mongoose';
 import config from './config/env.js';
-import connectDB from './config/database.js';
+import connectDB from './database/database.js';
 import authRoutes from './routes/authRoutes.js';
 import { errorHandler, notFound } from './middlewares/errorHandler.js';
 import { rateLimiter } from './middlewares/rateLimiter.js';
@@ -11,8 +12,10 @@ import { rateLimiter } from './middlewares/rateLimiter.js';
 // Initialize Express app
 const app = express();
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB (async)
+connectDB().catch(err => {
+  console.error('Failed to connect to MongoDB:', err.message);
+});
 
 // CORS configuration
 const allowedOrigins = process.env.NODE_ENV === 'production' 
@@ -51,11 +54,19 @@ app.use('/api', rateLimiter({
 
 // Health check endpoint
 app.get('/health', (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  
   res.status(200).json({
     success: true,
     message: 'NTCOG Kenya Authentication API is running',
     timestamp: new Date().toISOString(),
     environment: config.server.nodeEnv,
+    database: dbStatus,
+    envVarsLoaded: {
+      mongoUri: !!process.env.MONGO_URI,
+      jwtSecret: !!process.env.JWT_SECRET,
+      emailUser: !!process.env.EMAIL_USER,
+    }
   });
 });
 

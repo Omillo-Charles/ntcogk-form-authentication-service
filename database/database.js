@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import config from './env.js';
+import config from '../config/env.js';
 
 // MongoDB connection options
 const options = {
@@ -16,6 +16,10 @@ export const connectDB = async () => {
   try {
     console.log('Attempting to connect to MongoDB...');
     
+    if (!config.database.mongoUri) {
+      throw new Error('MONGO_URI is not defined in environment variables');
+    }
+    
     const conn = await mongoose.connect(config.database.mongoUri, options);
 
     console.log(`✓ MongoDB Connected: ${conn.connection.host}`);
@@ -26,9 +30,16 @@ export const connectDB = async () => {
     console.error('✗ MongoDB Connection Error:', error.message);
     console.error('Please check:');
     console.error('1. Your internet connection');
-    console.error('2. MongoDB Atlas IP whitelist');
-    console.error('3. Database credentials in .env file');
-    process.exit(1);
+    console.error('2. MongoDB Atlas IP whitelist (add 0.0.0.0/0 for Vercel)');
+    console.error('3. Database credentials in environment variables');
+    console.error('4. MONGO_URI format is correct');
+    
+    // Don't exit immediately in production, let the error handler deal with it
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    } else {
+      throw error; // Re-throw to be caught by error handler
+    }
   }
 };
 

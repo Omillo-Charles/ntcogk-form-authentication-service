@@ -1,7 +1,10 @@
 import dotenv from 'dotenv';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables (only needed for local development)
+// Vercel injects environment variables directly
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
+}
 
 const config = {
   // Server Configuration
@@ -69,7 +72,11 @@ try {
   console.log('✓ Environment configuration loaded successfully');
 } catch (error) {
   console.error('✗ Environment configuration error:', error.message);
-  process.exit(1);
+  console.error('Missing variables:', error.message);
+  // Don't exit in production, let Vercel handle the error
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
 }
 
 export default config;
