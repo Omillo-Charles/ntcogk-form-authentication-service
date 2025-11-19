@@ -15,12 +15,25 @@ const app = express();
 connectDB();
 
 // CORS configuration
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+  ? ['https://ntcogk.org', 'https://www.ntcogk.org', 'https://ntcogk.vercel.app'] 
+  : ['http://localhost:3000', 'http://localhost:3001'];
+
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://ntcogk.org', 'https://www.ntcogk.org'] 
-    : ['http://localhost:3000', 'http://localhost:3001'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 };
 
 // Middleware

@@ -4,9 +4,14 @@
   "description": "NTCOG Kenya Form Authentication API",
   "type": "module",
   "main": "app.js",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "vercel-build": "echo 'Build complete'"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
