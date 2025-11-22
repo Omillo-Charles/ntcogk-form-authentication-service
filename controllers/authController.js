@@ -68,11 +68,16 @@ export const register = async (req, res) => {
     user.emailVerificationExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save();
 
-    // TODO: Send OTP email
-    // await sendOTPEmail(user.email, otp);
-    
-    // For development, log the OTP
-    console.log(`OTP for ${user.email}: ${otp}`);
+    // Send OTP email
+    try {
+      const { sendOTPEmail } = await import('../utils/emailService.js');
+      await sendOTPEmail(user.email, otp, user.firstName);
+      console.log(`OTP email sent to ${user.email}`);
+    } catch (emailError) {
+      console.error('Failed to send OTP email:', emailError);
+      // Continue even if email fails - log OTP for development
+      console.log(`OTP for ${user.email}: ${otp}`);
+    }
 
     res.status(201).json({
       success: true,
@@ -122,6 +127,16 @@ export const login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: 'Account is deactivated. Please contact support.',
+      });
+    }
+
+    // Check if email is verified
+    if (!user.isEmailVerified) {
+      return res.status(403).json({
+        success: false,
+        message: 'Please verify your email before logging in. Check your inbox for the verification code.',
+        requiresVerification: true,
+        email: user.email,
       });
     }
 
@@ -526,11 +541,16 @@ export const resendOTP = async (req, res) => {
     user.emailVerificationExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save();
 
-    // TODO: Send OTP email
-    // await sendOTPEmail(user.email, otp);
-    
-    // For development, log the OTP
-    console.log(`New OTP for ${user.email}: ${otp}`);
+    // Send OTP email
+    try {
+      const { sendOTPEmail } = await import('../utils/emailService.js');
+      await sendOTPEmail(user.email, otp, user.firstName);
+      console.log(`OTP email resent to ${user.email}`);
+    } catch (emailError) {
+      console.error('Failed to send OTP email:', emailError);
+      // Continue even if email fails - log OTP for development
+      console.log(`New OTP for ${user.email}: ${otp}`);
+    }
 
     res.status(200).json({
       success: true,
