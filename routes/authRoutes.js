@@ -12,6 +12,7 @@ import {
   verifyEmail,
   resendOTP,
   getAdminStats,
+  getAllUsers,
 } from '../controllers/authController.js';
 import {
   validateRegister,
@@ -77,5 +78,6 @@ router.post('/change-password', verifyToken, sanitizeInput, changePassword);
 
 // Admin routes
 router.get('/admin/stats', verifyToken, getAdminStats);
+router.get('/admin/users', verifyToken, getAllUsers);
 
 export default router;

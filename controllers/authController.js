@@ -632,6 +632,71 @@ export const getAdminStats = async (req, res) => {
   }
 };
 
+// Get all users (admin only)
+export const getAllUsers = async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.role !== 'admin' && req.user.role !== 'super-admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.',
+      });
+    }
+
+    // Get query parameters for pagination and filtering
+    const {
+      page = 1,
+      limit = 50,
+      role,
+      isVerified,
+      isActive,
+      sortBy = 'createdAt',
+      order = 'desc',
+    } = req.query;
+
+    // Build filter object
+    const filter = {};
+    if (role) filter.role = role;
+    if (isVerified !== undefined) filter.isEmailVerified = isVerified === 'true';
+    if (isActive !== undefined) filter.isActive = isActive === 'true';
+
+    // Calculate pagination
+    const skip = (page - 1) * limit;
+    const sortOrder = order === 'asc' ? 1 : -1;
+
+    // Get users (exclude sensitive fields)
+    const users = await User.find(filter)
+      .select('-password -refreshToken -resetPasswordToken -resetPasswordExpires -emailVerificationToken')
+      .sort({ [sortBy]: sortOrder })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Get total count
+    const total = await User.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        users,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit),
+        },
+      },
+    });
+
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch users',
+      error: error.message,
+    });
+  }
+};
+
 export default {
   register,
   login,
@@ -645,4 +710,5 @@ export default {
   verifyEmail,
   resendOTP,
   getAdminStats,
+  getAllUsers,
 };
