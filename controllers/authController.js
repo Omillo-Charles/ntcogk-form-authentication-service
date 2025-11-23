@@ -72,11 +72,12 @@ export const register = async (req, res) => {
     try {
       const { sendOTPEmail } = await import('../utils/emailService.js');
       await sendOTPEmail(user.email, otp, user.firstName);
-      console.log(`OTP email sent to ${user.email}`);
+      console.log(`✓ OTP email sent successfully to ${user.email}`);
     } catch (emailError) {
-      console.error('Failed to send OTP email:', emailError);
+      console.error('✗ Failed to send OTP email:', emailError.message);
+      console.error('Full error:', emailError);
       // Continue even if email fails - log OTP for development
-      console.log(`OTP for ${user.email}: ${otp}`);
+      console.log(`⚠ OTP for ${user.email}: ${otp} (Email sending failed, use this code manually)`);
     }
 
     res.status(201).json({
@@ -545,11 +546,12 @@ export const resendOTP = async (req, res) => {
     try {
       const { sendOTPEmail } = await import('../utils/emailService.js');
       await sendOTPEmail(user.email, otp, user.firstName);
-      console.log(`OTP email resent to ${user.email}`);
+      console.log(`✓ OTP email resent successfully to ${user.email}`);
     } catch (emailError) {
-      console.error('Failed to send OTP email:', emailError);
+      console.error('✗ Failed to resend OTP email:', emailError.message);
+      console.error('Full error:', emailError);
       // Continue even if email fails - log OTP for development
-      console.log(`New OTP for ${user.email}: ${otp}`);
+      console.log(`⚠ New OTP for ${user.email}: ${otp} (Email sending failed, use this code manually)`);
     }
 
     res.status(200).json({

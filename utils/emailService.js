@@ -15,9 +15,11 @@ const transporter = nodemailer.createTransport({
 // Verify transporter configuration
 transporter.verify((error, success) => {
   if (error) {
-    console.error('Email transporter verification failed:', error);
+    console.error('✗ Email transporter verification failed:', error.message);
+    console.error('Please check your EMAIL_HOST, EMAIL_PORT, EMAIL_USER, and EMAIL_PASS environment variables');
   } else {
     console.log('✓ Email server is ready to send messages');
+    console.log(`✓ Email configured: ${process.env.EMAIL_USER}`);
   }
 });
 
